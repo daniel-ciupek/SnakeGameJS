@@ -13,7 +13,7 @@
   let touchMoveThreshold = 20;
 
   function getStep() {
-    return Math.max(5, Math.floor(canvas.width / 60));
+    return Math.max(5, Math.floor(canvas.width / 60)); 
   }
 
   function resizeCanvas() {
@@ -31,9 +31,13 @@
 
   function makeSnake(snakeLength) {
     snake = [];
+    const step = getStep(); 
+    let startX = Math.floor(canvas.width / (2 * step)) * step;
+    let startY = Math.floor(canvas.height / (2 * step)) * step;
+
     for (let i = 0; i < snakeLength; i++) {
-      let x = canvas.width / 2 + i * wallSize;
-      let y = canvas.height / 2;
+      let x = startX + i * step; 
+      let y = startY;
       snake.push({ x: x, y: y });
     }
   }
@@ -71,6 +75,11 @@
     let headY = snake[0].y + dy;
     snake.unshift({ x: headX, y: headY });
     snake.pop();
+
+    // KLUCZOWA POPRAWKA: Normalizowanie pozycji głowy po każdym ruchu
+    const step = getStep();
+    snake[0].x = Math.round(snake[0].x / step) * step;
+    snake[0].y = Math.round(snake[0].y / step) * step;
   }
 
   function keyDown(e) {
@@ -97,19 +106,28 @@
     let dyTouch = touch.clientY - touchStartY;
 
     if (Math.abs(dxTouch) > touchMoveThreshold || Math.abs(dyTouch) > touchMoveThreshold) {
+      const isInitialMove = pauseGame;
       pauseGame = false;
 
       if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
-        if (dxTouch > 0 && dx <= 0) {
-          dx = step; dy = 0;
-        } else if (dxTouch < 0 && dx >= 0) {
-          dx = -step; dy = 0;
+        if (dxTouch > 0) {
+          if (isInitialMove || dx <= 0) {
+            dx = step; dy = 0;
+          }
+        } else {
+          if (isInitialMove || dx >= 0) {
+            dx = -step; dy = 0;
+          }
         }
       } else {
-        if (dyTouch > 0 && dy <= 0) {
-          dx = 0; dy = step;
-        } else if (dyTouch < 0 && dy >= 0) {
-          dx = 0; dy = -step;
+        if (dyTouch > 0) {
+          if (isInitialMove || dy <= 0) {
+            dx = 0; dy = step;
+          }
+        } else {
+          if (isInitialMove || dy >= 0) {
+            dx = 0; dy = -step;
+          }
         }
       }
 
@@ -126,13 +144,15 @@
   }
 
   function randomFood() {
+    const step = getStep(); 
     function randomV(min, max) {
-      return Math.floor(Math.random() * (max - min) / wallSize) * wallSize;
+      // Upewniamy się, że jedzenie ląduje dokładnie na siatce
+      return Math.floor(Math.random() * (max - min) / step) * step;
     }
     let colors = ["yellow", "silver", "white", "orange"];
     food.color = colors[Math.floor(Math.random() * colors.length)];
-    food.x = randomV(0, canvas.width - wallSize);
-    food.y = randomV(0, canvas.height - wallSize);
+    food.x = randomV(0, canvas.width - step); 
+    food.y = randomV(0, canvas.height - step);
   }
 
   function drawFood() {
@@ -149,7 +169,8 @@
   function checkFoodCollision() {
     const head = snake[0];
     
-    if (head.x === food.x && head.y === food.y) {
+    // Kolizja sprawdzana na normalizowanych współrzędnych
+    if (head.x === food.x && head.y === food.y) { 
       snake.push(Object.assign({}, snake[snake.length - 1]));
       randomFood();
       points++;
