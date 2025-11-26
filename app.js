@@ -129,13 +129,12 @@
 
   function randomFood() {
     const step = getStep();
-    function randomV(max) {
-      return Math.floor(Math.random() * (max / step)) * step;
-    }
+    let cols = Math.floor(canvas.width / step);
+    let rows = Math.floor(canvas.height / step);
     let colors = ["yellow", "silver", "white", "orange"];
     food.color = colors[Math.floor(Math.random() * colors.length)];
-    food.x = randomV(canvas.width - step);
-    food.y = randomV(canvas.height - step);
+    food.x = Math.floor(Math.random() * cols) * step;
+    food.y = Math.floor(Math.random() * rows) * step;
   }
 
   function drawFood() {
