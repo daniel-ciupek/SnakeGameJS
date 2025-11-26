@@ -13,7 +13,7 @@
   let touchMoveThreshold = 20;
 
   function getStep() {
-    return Math.max(5, Math.floor(canvas.width / 60)); 
+    return Math.max(5, Math.floor(canvas.width / 60));
   }
 
   function resizeCanvas() {
@@ -71,15 +71,13 @@
   }
 
   function moveSnake(dx, dy) {
+    const step = getStep();
     let headX = snake[0].x + dx;
     let headY = snake[0].y + dy;
+    headX = Math.round(headX / step) * step;
+    headY = Math.round(headY / step) * step;
     snake.unshift({ x: headX, y: headY });
     snake.pop();
-
-    // KLUCZOWA POPRAWKA: Normalizowanie pozycji głowy po każdym ruchu
-    const step = getStep();
-    snake[0].x = Math.round(snake[0].x / step) * step;
-    snake[0].y = Math.round(snake[0].y / step) * step;
   }
 
   function keyDown(e) {
@@ -110,25 +108,11 @@
       pauseGame = false;
 
       if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
-        if (dxTouch > 0) {
-          if (isInitialMove || dx <= 0) {
-            dx = step; dy = 0;
-          }
-        } else {
-          if (isInitialMove || dx >= 0) {
-            dx = -step; dy = 0;
-          }
-        }
+        dx = dxTouch > 0 ? step : -step;
+        dy = 0;
       } else {
-        if (dyTouch > 0) {
-          if (isInitialMove || dy <= 0) {
-            dx = 0; dy = step;
-          }
-        } else {
-          if (isInitialMove || dy >= 0) {
-            dx = 0; dy = -step;
-          }
-        }
+        dx = 0;
+        dy = dyTouch > 0 ? step : -step;
       }
 
       touchStartX = touch.clientX;
@@ -138,21 +122,20 @@
     e.preventDefault();
   }
 
-  function handleTouchEnd(e) {
+  function handleTouchEnd() {
     touchStartX = 0;
     touchStartY = 0;
   }
 
   function randomFood() {
-    const step = getStep(); 
-    function randomV(min, max) {
-      // Upewniamy się, że jedzenie ląduje dokładnie na siatce
-      return Math.floor(Math.random() * (max - min) / step) * step;
+    const step = getStep();
+    function randomV(max) {
+      return Math.floor(Math.random() * (max / step)) * step;
     }
     let colors = ["yellow", "silver", "white", "orange"];
     food.color = colors[Math.floor(Math.random() * colors.length)];
-    food.x = randomV(0, canvas.width - step); 
-    food.y = randomV(0, canvas.height - step);
+    food.x = randomV(canvas.width - step);
+    food.y = randomV(canvas.height - step);
   }
 
   function drawFood() {
@@ -168,9 +151,7 @@
 
   function checkFoodCollision() {
     const head = snake[0];
-    
-    // Kolizja sprawdzana na normalizowanych współrzędnych
-    if (head.x === food.x && head.y === food.y) { 
+    if (head.x === food.x && head.y === food.y) {
       snake.push(Object.assign({}, snake[snake.length - 1]));
       randomFood();
       points++;
