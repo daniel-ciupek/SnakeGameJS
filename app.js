@@ -8,6 +8,9 @@
   let pauseGame = true;
   let food = { x: 0, y: 0, color: "white" };
   let points = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchMoveThreshold = 20;
 
   function getStep() {
     return Math.max(5, Math.floor(canvas.width / 60));
@@ -21,16 +24,13 @@
     canvas.height = canvasSize;
   }
 
-  function getRandomInt(max) {
-    return Math.floor(Math.random() * max);
-  }
-
   function clearCanvas() {
     context2d.fillStyle = "black";
     context2d.fillRect(0, 0, canvas.width, canvas.height);
   }
 
   function makeSnake(snakeLength) {
+    snake = [];
     for (let i = 0; i < snakeLength; i++) {
       let x = canvas.width / 2 + i * wallSize;
       let y = canvas.height / 2;
@@ -58,7 +58,6 @@
   }
 
   function resetGame() {
-    snake = [];
     makeSnake(5);
     randomFood();
     pauseGame = true;
@@ -78,15 +77,12 @@
     const step = getStep();
     if (pauseGame) pauseGame = false;
     switch (e.keyCode) {
-      case 37: case 65: dx = -step; dy = 0; break;
-      case 38: case 87: dx = 0; dy = -step; break;
-      case 39: case 68: dx = step; dy = 0; break;
-      case 40: case 83: dx = 0; dy = step; break;
+      case 37: case 65: if (dx === 0) { dx = -step; dy = 0; } break;
+      case 38: case 87: if (dy === 0) { dx = 0; dy = -step; } break;
+      case 39: case 68: if (dx === 0) { dx = step; dy = 0; } break;
+      case 40: case 83: if (dy === 0) { dx = 0; dy = step; } break;
     }
   }
-
-  let touchStartX = 0;
-  let touchStartY = 0;
 
   function handleTouchStart(e) {
     const touch = e.touches[0];
@@ -100,28 +96,33 @@
     let dxTouch = touch.clientX - touchStartX;
     let dyTouch = touch.clientY - touchStartY;
 
-    if (pauseGame) {
+    if (Math.abs(dxTouch) > touchMoveThreshold || Math.abs(dyTouch) > touchMoveThreshold) {
       pauseGame = false;
+
       if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
-        dx = dxTouch > 0 ? step : -step;
-        dy = 0;
+        if (dxTouch > 0 && dx <= 0) {
+          dx = step; dy = 0;
+        } else if (dxTouch < 0 && dx >= 0) {
+          dx = -step; dy = 0;
+        }
       } else {
-        dx = 0;
-        dy = dyTouch > 0 ? step : -step;
+        if (dyTouch > 0 && dy <= 0) {
+          dx = 0; dy = step;
+        } else if (dyTouch < 0 && dy >= 0) {
+          dx = 0; dy = -step;
+        }
       }
-    } else {
-      if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
-        dx = dxTouch > 0 ? step : -step;
-        dy = 0;
-      } else {
-        dx = 0;
-        dy = dyTouch > 0 ? step : -step;
-      }
+
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
     }
 
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
     e.preventDefault();
+  }
+
+  function handleTouchEnd(e) {
+    touchStartX = 0;
+    touchStartY = 0;
   }
 
   function randomFood() {
@@ -140,20 +141,15 @@
   }
 
   function checkWallCollision() {
-    snake.forEach(function (el) {
-      if (el.x < 0 || el.y < 0 || el.x >= canvas.width || el.y >= canvas.height)
-        resetGame();
-    });
+    let head = snake[0];
+    if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height)
+      resetGame();
   }
 
   function checkFoodCollision() {
     const head = snake[0];
-    if (
-      head.x < food.x + wallSize &&
-      head.x + wallSize > food.x &&
-      head.y < food.y + wallSize &&
-      head.y + wallSize > food.y
-    ) {
+    
+    if (head.x === food.x && head.y === food.y) {
       snake.push(Object.assign({}, snake[snake.length - 1]));
       randomFood();
       points++;
@@ -176,6 +172,7 @@
     document.addEventListener("keydown", keyDown);
     canvas.addEventListener("touchstart", handleTouchStart);
     canvas.addEventListener("touchmove", handleTouchMove);
+    canvas.addEventListener("touchend", handleTouchEnd);
 
     resetGame();
 
