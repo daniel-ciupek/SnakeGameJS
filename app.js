@@ -14,8 +14,8 @@
   }
 
   function resizeCanvas() {
-    const maxSize = 600; 
-    const screenWidth = window.innerWidth * 0.95; 
+    const maxSize = 600;
+    const screenWidth = window.innerWidth * 0.95;
     const canvasSize = Math.min(maxSize, screenWidth);
     canvas.width = canvasSize;
     canvas.height = canvasSize;
@@ -100,14 +100,23 @@
     let dxTouch = touch.clientX - touchStartX;
     let dyTouch = touch.clientY - touchStartY;
 
-    if (pauseGame) pauseGame = false;
-
-    if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
-      dx = dxTouch > 0 ? step : -step;
-      dy = 0;
+    if (pauseGame) {
+      pauseGame = false;
+      if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
+        dx = dxTouch > 0 ? step : -step;
+        dy = 0;
+      } else {
+        dx = 0;
+        dy = dyTouch > 0 ? step : -step;
+      }
     } else {
-      dx = 0;
-      dy = dyTouch > 0 ? step : -step;
+      if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
+        dx = dxTouch > 0 ? step : -step;
+        dy = 0;
+      } else {
+        dx = 0;
+        dy = dyTouch > 0 ? step : -step;
+      }
     }
 
     touchStartX = touch.clientX;
@@ -140,14 +149,14 @@
   function checkFoodCollision() {
     const head = snake[0];
     if (
-        head.x < food.x + wallSize &&
-        head.x + wallSize > food.x &&
-        head.y < food.y + wallSize &&
-        head.y + wallSize > food.y
+      head.x < food.x + wallSize &&
+      head.x + wallSize > food.x &&
+      head.y < food.y + wallSize &&
+      head.y + wallSize > food.y
     ) {
-        snake.push(Object.assign({}, snake[snake.length - 1]));
-        randomFood();
-        points++;
+      snake.push(Object.assign({}, snake[snake.length - 1]));
+      randomFood();
+      points++;
     }
   }
 
@@ -161,7 +170,7 @@
     canvas = document.getElementById("canvas");
     context2d = canvas.getContext("2d");
 
-    resizeCanvas(); 
+    resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
     document.addEventListener("keydown", keyDown);
