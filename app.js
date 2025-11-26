@@ -7,6 +7,7 @@
   let dy = 0;
   let pauseGame = true;
   let food = {x:0, y:0, color:"white"};
+  let points = 0;
 
   function getRandomInt(max) {
     return Math.floor(Math.random() * max);
@@ -101,6 +102,28 @@
    context2d.fillRect(food.x, food.y, wallSize, wallSize);
   }
 
+  function checkWallCollision() {
+   snake.forEach(function(el) {
+      if(el.x > canvas.width || el.x < 0
+         || el.y >canvas.height || el.y < 0) resetGame()
+      
+   })
+  }
+
+  function checkFoodCollision(){
+   if(food.x == snake[0].x && food.y == snake[0].y) {
+      snake.push(Object.assign({}, snake[snake.length-1]));
+      randomFood();
+      points++;
+   }
+  }
+
+  function drawPoints() {
+   context2d.font = "20px Arial";
+   context2d.fillStyle = "white";
+   context2d.fillText("Points:" + points, 10, 20);
+  }
+
   function startApp() {
     canvas = document.getElementById("canvas");
     context2d = canvas.getContext("2d");
@@ -110,7 +133,10 @@
 
     setInterval(function () {
       clearCanvas();
+      checkWallCollision();
+      checkFoodCollision();
       if (!pauseGame) moveSnake(dx, dy);
+      drawPoints();
       drawFood();
       drawSnake();
     }, 100);
