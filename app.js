@@ -41,6 +41,19 @@
     });
   }
 
+  function checkSelfCollision() {
+    
+    let head = snake[0];
+
+    for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+            resetGame();
+            break;
+        }
+    }
+}
+
+
   function resetGame() {
     snake = [];
     makeSnake(5);
@@ -136,6 +149,7 @@
       clearCanvas();
       checkWallCollision();
       checkFoodCollision();
+      checkSelfCollision();
       if (!pauseGame) moveSnake(dx, dy);
       drawPoints();
       drawFood();
