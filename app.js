@@ -46,6 +46,7 @@
     makeSnake(5);
     randomFood();
     pauseGame = true;
+    points = 0;
   }
 
   function moveSnake(dx, dy) {
