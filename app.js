@@ -6,7 +6,7 @@
   let dx = 0;
   let dy = 0;
   let pauseGame = true;
-  let food = {x:0, y:0, color:"white"};
+  let food = { x: 0, y: 0, color: "white" };
   let points = 0;
 
   function getRandomInt(max) {
@@ -42,17 +42,15 @@
   }
 
   function checkSelfCollision() {
-    
     let head = snake[0];
 
     for (let i = 1; i < snake.length; i++) {
-        if (head.x === snake[i].x && head.y === snake[i].y) {
-            resetGame();
-            break;
-        }
+      if (head.x === snake[i].x && head.y === snake[i].y) {
+        resetGame();
+        break;
+      }
     }
-}
-
+  }
 
   function resetGame() {
     snake = [];
@@ -98,44 +96,84 @@
     }
   }
 
-  function randomFood() {
-      function randomV(min, max) {
-         return Math.floor( (Math.random() * (max-min) + min) / wallSize ) * wallSize;
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  function handleTouchStart(e) {
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+  }
+
+  function handleTouchMove(e) {
+    if (pauseGame) pauseGame = false;
+
+    const touch = e.touches[0];
+    let dxTouch = touch.clientX - touchStartX;
+    let dyTouch = touch.clientY - touchStartY;
+
+    if (Math.abs(dxTouch) > Math.abs(dyTouch)) {
+      if (dxTouch > 0) {
+        dx = 10; // RIGHT
+        dy = 0;
+      } else {
+        dx = -10; // LEFT
+        dy = 0;
       }
+    } else {
+      if (dyTouch > 0) {
+        dx = 0;
+        dy = 10; // DOWN
+      } else {
+        dx = 0;
+        dy = -10; // UP
+      }
+    }
 
-      let colors = ["yellow", "silver", "white", "orange"];
-      food.color = colors[Math.floor(Math.random()*colors.length)];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
 
-      food.x = randomV(20, canvas.width -20);
-      food.y = randomV(20, canvas.height -20);
+    e.preventDefault();
+  }
 
+  function randomFood() {
+    function randomV(min, max) {
+      return (
+        Math.floor((Math.random() * (max - min) + min) / wallSize) * wallSize
+      );
+    }
+
+    let colors = ["yellow", "silver", "white", "orange"];
+    food.color = colors[Math.floor(Math.random() * colors.length)];
+
+    food.x = randomV(20, canvas.width - 20);
+    food.y = randomV(20, canvas.height - 20);
   }
 
   function drawFood() {
-   context2d.fillStyle = food.color;
-   context2d.fillRect(food.x, food.y, wallSize, wallSize);
+    context2d.fillStyle = food.color;
+    context2d.fillRect(food.x, food.y, wallSize, wallSize);
   }
 
   function checkWallCollision() {
-   snake.forEach(function(el) {
-      if(el.x > canvas.width || el.x < 0
-         || el.y >canvas.height || el.y < 0) resetGame()
-      
-   })
+    snake.forEach(function (el) {
+      if (el.x > canvas.width || el.x < 0 || el.y > canvas.height || el.y < 0)
+        resetGame();
+    });
   }
 
-  function checkFoodCollision(){
-   if(food.x == snake[0].x && food.y == snake[0].y) {
-      snake.push(Object.assign({}, snake[snake.length-1]));
+  function checkFoodCollision() {
+    if (food.x == snake[0].x && food.y == snake[0].y) {
+      snake.push(Object.assign({}, snake[snake.length - 1]));
       randomFood();
       points++;
-   }
+    }
   }
 
   function drawPoints() {
-   context2d.font = "20px Arial";
-   context2d.fillStyle = "white";
-   context2d.fillText("Points:" + points, 10, 20);
+    context2d.font = "20px Arial";
+    context2d.fillStyle = "white";
+    context2d.fillText("Points:" + points, 10, 20);
   }
 
   function startApp() {
@@ -147,6 +185,8 @@
 
     setInterval(function () {
       clearCanvas();
+      canvas.addEventListener("touchstart", handleTouchStart);
+      canvas.addEventListener("touchmove", handleTouchMove);
       checkWallCollision();
       checkFoodCollision();
       checkSelfCollision();
