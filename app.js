@@ -9,6 +9,14 @@
   let food = { x: 0, y: 0, color: "white" };
   let points = 0;
 
+  function resizeCanvas() {
+      const maxSize = 600; 
+      const screenWidth = window.innerWidth * 0.95; 
+      const canvasSize = Math.min(maxSize, screenWidth);
+      canvas.width = canvasSize;
+      canvas.height = canvasSize;
+  }
+
   function getRandomInt(max) {
     return Math.floor(Math.random() * max);
   }
@@ -179,7 +187,15 @@
   function startApp() {
     canvas = document.getElementById("canvas");
     context2d = canvas.getContext("2d");
+    
+
+     resizeCanvas(); 
+    window.addEventListener("resize", resizeCanvas);
+
+    
     document.addEventListener("keydown", keyDown);
+    canvas.addEventListener("touchstart", handleTouchStart);
+    canvas.addEventListener("touchmove", handleTouchMove);
 
     resetGame();
 
